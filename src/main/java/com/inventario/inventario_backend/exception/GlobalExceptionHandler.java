@@ -6,6 +6,7 @@ import java.util.Objects;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -59,6 +60,11 @@ public class GlobalExceptionHandler {
                 HttpStatus.CONFLICT,
                 "La operación no puede completarse porque entra en conflicto con datos existentes"
         );
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiError> manejarCredencialesInvalidas(BadCredentialsException exception) {
+        return responder(HttpStatus.UNAUTHORIZED, "Credenciales inválidas");
     }
 
     @ExceptionHandler(Exception.class)
