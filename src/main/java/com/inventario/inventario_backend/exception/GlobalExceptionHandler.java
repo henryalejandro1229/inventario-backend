@@ -1,8 +1,9 @@
 package com.inventario.inventario_backend.exception;
 
+import com.inventario.inventario_backend.dto.error.ApiError;
 import jakarta.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
-import java.util.Objects;
+import java.util.stream.Collectors;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,10 +35,12 @@ public class GlobalExceptionHandler {
         String message = exception.getBindingResult()
                 .getFieldErrors()
                 .stream()
-                .map(error -> error.getDefaultMessage())
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse("Los datos proporcionados no son válidos");
+                .map(error -> "El campo " + error.getField() + " " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+
+        if (message.isBlank()) {
+            message = "Los datos proporcionados no son válidos";
+        }
 
         return responder(HttpStatus.BAD_REQUEST, message);
     }
@@ -47,9 +50,11 @@ public class GlobalExceptionHandler {
         String message = exception.getConstraintViolations()
                 .stream()
                 .map(violation -> violation.getMessage())
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse("Los datos proporcionados no son válidos");
+                .collect(Collectors.joining("; "));
+
+        if (message.isBlank()) {
+            message = "Los datos proporcionados no son válidos";
+        }
 
         return responder(HttpStatus.BAD_REQUEST, message);
     }
@@ -69,7 +74,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> manejarErrorInterno(Exception exception) {
-        return responder(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error interno en el servidor");
+        return responder(HttpStatus.INTERNAL_SERVER_ERROR, "Ha ocurrido un error interno");
     }
 
     private ResponseEntity<ApiError> responder(HttpStatus status, String message) {

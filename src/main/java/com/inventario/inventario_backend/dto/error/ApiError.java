@@ -1,4 +1,4 @@
-package com.inventario.inventario_backend.exception;
+package com.inventario.inventario_backend.dto.error;
 
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
