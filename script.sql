@@ -32,12 +32,12 @@ CREATE TABLE IF NOT EXISTS categorias (
 -- ==========================================
 
 CREATE TABLE IF NOT EXISTS activos (
-    id CHAR(36) PRIMARY KEY,
+    identificador_tecnico CHAR(36) PRIMARY KEY,
     folio_inventario VARCHAR(20) NOT NULL,
     numero_serie VARCHAR(100) NOT NULL,
     marca_modelo VARCHAR(150) NOT NULL,
     estado VARCHAR(20) NOT NULL,
-    costo_adquisicion DECIMAL(12,2) NOT NULL,
+    costo_adquisicion DECIMAL(19,2) NOT NULL,
     fecha_ingreso DATETIME NOT NULL,
     categoria_id BIGINT NOT NULL,
 

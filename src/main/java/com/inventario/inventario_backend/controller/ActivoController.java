@@ -9,7 +9,9 @@ import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springdoc.core.annotations.ParameterObject;
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -40,6 +42,11 @@ public class ActivoController {
 
     @GetMapping
         @Operation(summary = "Consultar activos", description = "Consulta activos con filtros opcionales, paginación y ordenamiento. Roles: ADMIN y USER.")
+        @Parameters({
+            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Número de página, comenzando en 0"),
+            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Cantidad de elementos por página"),
+            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "Ordenamiento, por ejemplo fechaIngreso,desc")
+        })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<ActivoResponse>> buscar(
             @Parameter(description = "Coincidencia parcial por número de serie")
@@ -54,10 +61,7 @@ public class ActivoController {
             @RequestParam(required = false) BigDecimal costoMin,
             @Parameter(description = "Costo de adquisición máximo")
             @RequestParam(required = false) BigDecimal costoMax,
-            @Parameter(name = "page", in = ParameterIn.QUERY, description = "Número de página, comenzando en 0")
-            @Parameter(name = "size", in = ParameterIn.QUERY, description = "Cantidad de elementos por página")
-            @Parameter(name = "sort", in = ParameterIn.QUERY, description = "Ordenamiento, por ejemplo fechaIngreso,desc")
-            Pageable pageable) {
+            @ParameterObject Pageable pageable) {
 
         return ResponseEntity.ok(activoService.buscar(
                 numeroSerie,
