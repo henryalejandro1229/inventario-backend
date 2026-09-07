@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS activos (
     marca_modelo VARCHAR(150) NOT NULL,
     estado VARCHAR(20) NOT NULL,
     costo_adquisicion DECIMAL(19,2) NOT NULL,
-    fecha_ingreso DATETIME NOT NULL,
+    fecha_ingreso DATETIME(6) NOT NULL,
     categoria_id BIGINT NOT NULL,
 
     CONSTRAINT uk_activo_folio
