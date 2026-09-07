@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,7 @@ public class ActivoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<Page<ActivoResponse>> buscar(
             @RequestParam(required = false) String numeroSerie,
             @RequestParam(required = false) String marcaModelo,
@@ -54,16 +56,19 @@ public class ActivoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<ActivoResponse> obtenerPorId(@PathVariable UUID id) {
         return ResponseEntity.ok(activoService.obtenerPorId(id));
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ActivoResponse> registrar(@Valid @RequestBody ActivoRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(activoService.registrar(request));
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ActivoResponse> actualizar(
             @PathVariable UUID id,
             @Valid @RequestBody ActivoRequest request) {
@@ -72,6 +77,7 @@ public class ActivoController {
     }
 
     @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ActivoResponse> cambiarEstado(
             @PathVariable UUID id,
             @Valid @RequestBody CambioEstadoRequest request) {
