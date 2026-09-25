@@ -160,7 +160,7 @@ class InventarioApiIntegrationTests {
                     .content(activoJson("ADMIN-SERIE", "Laptop", "DISPONIBLE", "1200.00")))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.identificadorTecnico").isNotEmpty())
-                .andExpect(jsonPath("$.folioInventario").value(org.hamcrest.Matchers.matchesRegex("TST-\\d{4}-001")))
+                .andExpect(jsonPath("$.folioInventario").value(org.hamcrest.Matchers.matchesRegex("LAP-\\d{4}-001")))
                 .andExpect(jsonPath("$.fechaIngreso").isNotEmpty())
                 .andExpect(jsonPath("$.categoriaId").value(categoria.getId().intValue()))
                 .andExpect(jsonPath("$.estado").value("DISPONIBLE"));
