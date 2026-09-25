@@ -116,15 +116,3 @@ VALUES
     ('Monitor', 'MON'),
     ('Celular', 'CEL');
 
-
--- ==========================================
--- USUARIOS INICIALES
--- ==========================================
--- IMPORTANTE:
--- Estos passwords son temporales para desarrollo.
--- Posteriormente deben almacenarse utilizando BCrypt.
-
-INSERT IGNORE INTO usuarios (username, password, rol)
-VALUES
-    ('admin', 'admin123', 'ADMIN'),
-    ('user', 'user123', 'USER');
