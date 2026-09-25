@@ -59,10 +59,10 @@ class InventarioApiIntegrationTests {
         usuarioRepository.deleteAllInBatch();
         categoriaRepository.deleteAllInBatch();
 
-        categoria = new Categoria();
-        categoria.setNombre("Laptop de integración");
-        categoria.setCodigoPrefijo("TST");
-        categoria = categoriaRepository.saveAndFlush(categoria);
+        categoria = guardarCategoria("Laptop de integración", "TST");
+        guardarCategoria("Monitor de integración", "MON");
+        guardarCategoria("Impresora de integración", "IMP");
+        guardarCategoria("Servidor de integración", "SRV");
 
         guardarUsuario("admin-test", "admin-password", Rol.ADMIN);
         guardarUsuario("user-test", "user-password", Rol.USER);
@@ -70,7 +70,7 @@ class InventarioApiIntegrationTests {
 
     @Test
     void loginCorrectoDevuelveJwt() throws Exception {
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson("admin-test", "admin-password")))
                 .andExpect(status().isOk())
@@ -81,8 +81,16 @@ class InventarioApiIntegrationTests {
     }
 
     @Test
-    void loginConUsuarioInexistenteDevuelve401() throws Exception {
+    void loginConRutaLegacyNoExiste() throws Exception {
         mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(loginJson("admin-test", "admin-password")))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void loginConUsuarioInexistenteDevuelve401() throws Exception {
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson("missing", "password")))
                 .andExpect(status().isUnauthorized())
@@ -91,7 +99,7 @@ class InventarioApiIntegrationTests {
 
     @Test
     void loginConPasswordIncorrectoDevuelve401() throws Exception {
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson("admin-test", "wrong-password")))
                 .andExpect(status().isUnauthorized())
@@ -100,7 +108,7 @@ class InventarioApiIntegrationTests {
 
     @Test
     void loginInvalidoDevuelve400() throws Exception {
-        mockMvc.perform(post("/auth/login")
+        mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isBadRequest())
@@ -281,6 +289,13 @@ class InventarioApiIntegrationTests {
                 .andExpect(jsonPath("$.message").isString());
     }
 
+    private Categoria guardarCategoria(String nombre, String codigoPrefijo) {
+        Categoria categoria = new Categoria();
+        categoria.setNombre(nombre);
+        categoria.setCodigoPrefijo(codigoPrefijo);
+        return categoriaRepository.saveAndFlush(categoria);
+    }
+
     private void guardarUsuario(String username, String password, Rol rol) {
         Usuario usuario = new Usuario();
         usuario.setUsername(username);
@@ -290,7 +305,7 @@ class InventarioApiIntegrationTests {
     }
 
     private String bearer(String username, String password) throws Exception {
-        String response = mockMvc.perform(post("/auth/login")
+        String response = mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(loginJson(username, password)))
                 .andExpect(status().isOk())
