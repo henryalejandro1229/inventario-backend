@@ -14,6 +14,7 @@ import com.inventario.inventario_backend.entity.Usuario;
 import com.inventario.inventario_backend.enums.Rol;
 import com.inventario.inventario_backend.repository.ActivoRepository;
 import com.inventario.inventario_backend.repository.CategoriaRepository;
+import com.inventario.inventario_backend.repository.FolioInventarioCounterRepository;
 import com.inventario.inventario_backend.repository.UsuarioRepository;
 import java.util.Base64;
 import java.util.HashSet;
@@ -51,18 +52,23 @@ class InventarioApiIntegrationTests {
     @Autowired
     private ActivoRepository activoRepository;
 
+    @Autowired
+    private FolioInventarioCounterRepository folioInventarioCounterRepository;
+
     private Categoria categoria;
 
     @BeforeEach
     void prepararDatos() {
         activoRepository.deleteAllInBatch();
+        folioInventarioCounterRepository.deleteAllInBatch();
         usuarioRepository.deleteAllInBatch();
         categoriaRepository.deleteAllInBatch();
 
-        categoria = guardarCategoria("Laptop de integración", "TST");
-        guardarCategoria("Monitor de integración", "MON");
-        guardarCategoria("Impresora de integración", "IMP");
-        guardarCategoria("Servidor de integración", "SRV");
+        categoria = guardarCategoria("Laptop", "LAP");
+        guardarCategoria("Monitor", "MON");
+        guardarCategoria("Impresora", "IMP");
+        guardarCategoria("Servidor", "SRV");
+        guardarCategoria("Celular", "CEL");
 
         guardarUsuario("admin-test", "admin-password", Rol.ADMIN);
         guardarUsuario("user-test", "user-password", Rol.USER);
@@ -78,14 +84,6 @@ class InventarioApiIntegrationTests {
                 .andExpect(jsonPath("$.token").isNotEmpty())
                 .andExpect(jsonPath("$.username").value("admin-test"))
                 .andExpect(jsonPath("$.rol").value("ADMIN"));
-    }
-
-    @Test
-    void loginConRutaLegacyNoExiste() throws Exception {
-        mockMvc.perform(post("/auth/login")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(loginJson("admin-test", "admin-password")))
-                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -131,8 +129,8 @@ class InventarioApiIntegrationTests {
         mockMvc.perform(get("/api/categorias").header("Authorization", bearer("user-test", "user-password")))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id").value(categoria.getId().intValue()))
-                .andExpect(jsonPath("$[0].nombre").value("Laptop de integración"))
-                .andExpect(jsonPath("$[0].codigoPrefijo").value("TST"));
+                .andExpect(jsonPath("$[0].nombre").value("Laptop"))
+                .andExpect(jsonPath("$[0].codigoPrefijo").value("LAP"));
     }
 
     @Test

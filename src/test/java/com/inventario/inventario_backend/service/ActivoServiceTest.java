@@ -3,6 +3,7 @@ package com.inventario.inventario_backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,12 +12,14 @@ import com.inventario.inventario_backend.dto.activo.ActivoRequest;
 import com.inventario.inventario_backend.dto.activo.ActivoResponse;
 import com.inventario.inventario_backend.entity.Activo;
 import com.inventario.inventario_backend.entity.Categoria;
+import com.inventario.inventario_backend.entity.FolioInventarioCounter;
 import com.inventario.inventario_backend.enums.EstadoActivo;
 import com.inventario.inventario_backend.exception.NumeroSerieDuplicadoException;
 import com.inventario.inventario_backend.exception.RecursoNoEncontradoException;
 import com.inventario.inventario_backend.exception.TransicionEstadoInvalidaException;
 import com.inventario.inventario_backend.repository.ActivoRepository;
 import com.inventario.inventario_backend.repository.CategoriaRepository;
+import com.inventario.inventario_backend.repository.FolioInventarioCounterRepository;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,13 +47,16 @@ class ActivoServiceTest {
     @Mock
     private CategoriaRepository categoriaRepository;
 
+    @Mock
+    private FolioInventarioCounterRepository folioInventarioCounterRepository;
+
     private ActivoService activoService;
     private Categoria categoria;
     private ActivoRequest request;
 
     @BeforeEach
     void setUp() {
-        activoService = new ActivoService(activoRepository, categoriaRepository);
+        activoService = new ActivoService(activoRepository, categoriaRepository, folioInventarioCounterRepository);
 
         categoria = new Categoria();
         categoria.setId(1L);
@@ -69,9 +75,10 @@ class ActivoServiceTest {
     void debeRegistrarActivoConFolioGenerado() {
         when(categoriaRepository.findByIdForUpdate(categoria.getId())).thenReturn(Optional.of(categoria));
         when(activoRepository.findByNumeroSerie(request.getNumeroSerie())).thenReturn(Optional.empty());
-        when(activoRepository.findFoliosPorCategoriaYAnio(
-                eq(categoria.getId()), any(LocalDateTime.class), any(LocalDateTime.class)))
-                .thenReturn(List.of());
+        when(folioInventarioCounterRepository.findByCategoriaAndAnio(eq(categoria), anyInt()))
+                .thenReturn(Optional.empty());
+        when(folioInventarioCounterRepository.saveAndFlush(any(FolioInventarioCounter.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
         when(activoRepository.save(any(Activo.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ActivoResponse response = activoService.registrar(request);

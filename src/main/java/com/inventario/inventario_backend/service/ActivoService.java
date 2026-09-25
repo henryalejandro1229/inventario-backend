@@ -4,18 +4,17 @@ import com.inventario.inventario_backend.dto.activo.ActivoRequest;
 import com.inventario.inventario_backend.dto.activo.ActivoResponse;
 import com.inventario.inventario_backend.entity.Activo;
 import com.inventario.inventario_backend.entity.Categoria;
+import com.inventario.inventario_backend.entity.FolioInventarioCounter;
 import com.inventario.inventario_backend.enums.EstadoActivo;
 import com.inventario.inventario_backend.exception.NumeroSerieDuplicadoException;
 import com.inventario.inventario_backend.exception.RecursoNoEncontradoException;
 import com.inventario.inventario_backend.exception.TransicionEstadoInvalidaException;
 import com.inventario.inventario_backend.repository.ActivoRepository;
 import com.inventario.inventario_backend.repository.CategoriaRepository;
+import com.inventario.inventario_backend.repository.FolioInventarioCounterRepository;
 import com.inventario.inventario_backend.specification.ActivoSpecification;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -28,10 +27,15 @@ public class ActivoService {
 
     private final ActivoRepository activoRepository;
     private final CategoriaRepository categoriaRepository;
+    private final FolioInventarioCounterRepository folioInventarioCounterRepository;
 
-    public ActivoService(ActivoRepository activoRepository, CategoriaRepository categoriaRepository) {
+    public ActivoService(
+            ActivoRepository activoRepository,
+            CategoriaRepository categoriaRepository,
+            FolioInventarioCounterRepository folioInventarioCounterRepository) {
         this.activoRepository = activoRepository;
         this.categoriaRepository = categoriaRepository;
+        this.folioInventarioCounterRepository = folioInventarioCounterRepository;
     }
 
     @Transactional
@@ -134,20 +138,20 @@ public class ActivoService {
 
     private String generarFolio(Categoria categoria, LocalDateTime fechaIngreso) {
         int anio = fechaIngreso.getYear();
-        LocalDateTime inicioAnio = LocalDateTime.of(LocalDate.of(anio, 1, 1), LocalTime.MIN);
-        LocalDateTime inicioSiguienteAnio = inicioAnio.plusYears(1);
-        List<Activo> activosDelAnio = activoRepository
-            .findFoliosPorCategoriaYAnio(
-                        categoria.getId(),
-                        inicioAnio,
-                        inicioSiguienteAnio
-                );
 
-        int siguienteConsecutivo = activosDelAnio.stream()
-                .map(Activo::getFolioInventario)
-                .mapToInt(folio -> extraerConsecutivo(folio, categoria.getCodigoPrefijo(), anio))
-                .max()
-                .orElse(0) + 1;
+        FolioInventarioCounter counter = folioInventarioCounterRepository
+                .findByCategoriaAndAnio(categoria, anio)
+                .orElseGet(() -> {
+                    FolioInventarioCounter nuevoCounter = new FolioInventarioCounter();
+                    nuevoCounter.setCategoria(categoria);
+                    nuevoCounter.setAnio(anio);
+                    nuevoCounter.setUltimoConsecutivo(0);
+                    return folioInventarioCounterRepository.saveAndFlush(nuevoCounter);
+                });
+
+        int siguienteConsecutivo = counter.getUltimoConsecutivo() + 1;
+        counter.setUltimoConsecutivo(siguienteConsecutivo);
+        folioInventarioCounterRepository.saveAndFlush(counter);
 
         return String.format(
                 Locale.ROOT,
@@ -156,23 +160,6 @@ public class ActivoService {
                 anio,
                 siguienteConsecutivo
         );
-    }
-
-    private int extraerConsecutivo(String folio, String prefijo, int anio) {
-        if (folio == null) {
-            return 0;
-        }
-
-        String[] partes = folio.split("-");
-        if (partes.length != 3 || !partes[0].equals(prefijo) || !partes[1].equals(String.valueOf(anio))) {
-            return 0;
-        }
-
-        try {
-            return Integer.parseInt(partes[2]);
-        } catch (NumberFormatException exception) {
-            return 0;
-        }
     }
 
     private RecursoNoEncontradoException categoriaNoEncontrada(Long categoriaId) {

@@ -28,6 +28,25 @@ CREATE TABLE IF NOT EXISTS categorias (
 
 
 -- ==========================================
+-- TABLA: FOLIOS POR CATEGORÍA Y AÑO
+-- ==========================================
+
+CREATE TABLE IF NOT EXISTS folio_inventario_contadores (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    categoria_id BIGINT NOT NULL,
+    anio INT NOT NULL,
+    ultimo_consecutivo INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT uk_folio_contador_categoria_anio
+        UNIQUE (categoria_id, anio),
+
+    CONSTRAINT fk_folio_contador_categoria
+        FOREIGN KEY (categoria_id)
+        REFERENCES categorias(id)
+);
+
+
+-- ==========================================
 -- TABLA: ACTIVOS
 -- ==========================================
 
@@ -90,19 +109,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
 -- ÍNDICES PARA CONSULTAS
 -- ==========================================
 
-CREATE INDEX idx_activo_categoria
+CREATE INDEX IF NOT EXISTS idx_activo_categoria
     ON activos(categoria_id);
 
-CREATE INDEX idx_activo_estado
+CREATE INDEX IF NOT EXISTS idx_activo_estado
     ON activos(estado);
 
-CREATE INDEX idx_activo_marca_modelo
+CREATE INDEX IF NOT EXISTS idx_activo_marca_modelo
     ON activos(marca_modelo);
 
-CREATE INDEX idx_activo_fecha_ingreso
+CREATE INDEX IF NOT EXISTS idx_activo_fecha_ingreso
     ON activos(fecha_ingreso);
 
-CREATE INDEX idx_activo_costo
+CREATE INDEX IF NOT EXISTS idx_activo_costo
     ON activos(costo_adquisicion);
 
 
